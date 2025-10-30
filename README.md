@@ -29,6 +29,8 @@ pickle / joblib
 
 HTML, CSS, JavaScript (frontend)
 
+
+
 The dataset was compiled from multiple sources on Kaggle, including:
 
 all_courses.csv
@@ -37,7 +39,9 @@ udemy_courses.csv
 
 online_courses.csv
 
-After preprocessing and cleaning, over 5,000 course entries were used for training.
+After preprocessing and cleaning, over 5600+ course entries were used for training.
+
+
 
 Model Training Overview
 
@@ -71,7 +75,7 @@ Given a list of enrolled courses, the system uses SBERT embeddings to recommend 
 🧪 Run Locally
 1️⃣ Clone the repository
 git clone https://github.com/4mazin/GP_Recommendation_System.git
-cd graduation-project
+cd Graduation-Project
 
 2️⃣ Install dependencies
 pip install -r requirements.txt
