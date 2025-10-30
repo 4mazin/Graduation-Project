@@ -29,7 +29,7 @@ sbert_embeddings = np.load(r"D:\Jupyter_Notebooks\Graduation-Project\Models\sber
 
 
 # ===== Search Function =====
-def search_courses_tfidf(query: str, top_n=10, min_sim=0.3):
+def search_courses_tfidf(query: str, top_n=10, min_sim=0.2):
     if not isinstance(query, str) or not query.strip():
         return {"error": "Invalid or empty query."}
 
