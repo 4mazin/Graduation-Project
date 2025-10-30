@@ -17,19 +17,19 @@ app.add_middleware(
 )
 
 # ===== Load Models and Data =====
-courses = pd.read_pickle(r"D:\Jupyter_Notebooks\Graduation Project\courses_with_vectors.pkl")
+courses = pd.read_pickle(r"D:\Jupyter_Notebooks\Graduation-Project\Models\courses_with_vectors.pkl")
 
-with open(r"D:\Jupyter_Notebooks\Graduation Project\tfidf_vectorizer.pkl", "rb") as f:
+with open(r"D:\Jupyter_Notebooks\Graduation-Project\Models\tfidf_vectorizer.pkl", "rb") as f:
     vectorizer = pickle.load(f)
 
-with open(r"D:\Jupyter_Notebooks\Graduation Project\tfidf_matrix.pkl", "rb") as f:
+with open(r"D:\Jupyter_Notebooks\Graduation-Project\Models\tfidf_matrix.pkl", "rb") as f:
     tfidf_matrix = pickle.load(f)
 
-sbert_embeddings = np.load(r"D:\Jupyter_Notebooks\Graduation Project\sbert_embeddings.npy")
+sbert_embeddings = np.load(r"D:\Jupyter_Notebooks\Graduation-Project\Models\sbert_embeddings.npy")
 
 
 # ===== Search Function =====
-def search_courses_tfidf(query: str, top_n=5):
+def search_courses_tfidf(query: str, top_n=5, min_sim=0.3):
     if not isinstance(query, str) or not query.strip():
         return {"error": "Invalid or empty query."}
 
@@ -39,6 +39,8 @@ def search_courses_tfidf(query: str, top_n=5):
 
     results = []
     for idx in top_indices:
+        if sim_scores[idx] < min_sim:
+            continue  # skip low similarity
         course = courses.iloc[idx]
         results.append({
             "course_name": course["course_name"],
@@ -46,12 +48,17 @@ def search_courses_tfidf(query: str, top_n=5):
             "url": course["url"],
             "similarity": float(sim_scores[idx])
         })
+
+    # If no results above threshold
+    if not results:
+        return {"message": "Not Found"}
+
     return results
 
 
 
 # ===== SBERT Recommendation Function =====
-def recommend_by_course(enrolled_courses, top_n=5):
+def recommend_by_course(enrolled_courses, top_n=5, min_sim=0.25):
     if not isinstance(enrolled_courses, list):
         enrolled_courses = [enrolled_courses]
 
@@ -65,11 +72,15 @@ def recommend_by_course(enrolled_courses, top_n=5):
     query_emb = sbert_embeddings[indices].mean(axis=0).reshape(1, -1)
 
     sim_scores = cosine_similarity(query_emb, sbert_embeddings).flatten()
-    sim_scores[indices] = -1  # Exclude enrolled
+    sim_scores[indices] = -1  # Exclude enrolled courses
 
     top_indices = sim_scores.argsort()[::-1][:top_n]
+
     recommendations = []
     for idx in top_indices:
+        if sim_scores[idx] < min_sim:
+            continue  # skip if similarity is too low
+
         course = courses.iloc[idx]
         recommendations.append({
             "course_name": course["course_name"],
@@ -77,7 +88,13 @@ def recommend_by_course(enrolled_courses, top_n=5):
             "url": course["url"],
             "similarity": float(sim_scores[idx])
         })
+
+    # If no valid recommendations above threshold
+    if not recommendations:
+        return {"message": "Not Found"}
+
     return recommendations
+
 
 # ===== API Endpoints =====
 @app.get("/")
