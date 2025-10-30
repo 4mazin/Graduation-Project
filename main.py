@@ -80,7 +80,6 @@ def recommend_by_course(enrolled_courses, top_n=10, min_sim=0.5):
     for idx in top_indices:
         if sim_scores[idx] < min_sim:
             continue  # skip if similarity is too low
-
         course = courses.iloc[idx]
         recommendations.append({
             "course_name": course["course_name"],
