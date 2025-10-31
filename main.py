@@ -58,7 +58,7 @@ def search_courses_tfidf(query: str, top_n=10, min_sim=0.2):
 
 
 # ===== SBERT Recommendation Function =====
-def recommend_by_course(enrolled_courses, top_n=10, min_sim=0.5):
+def recommend_by_course(enrolled_courses, top_n=10, min_sim=0.4):
     if not isinstance(enrolled_courses, list):
         enrolled_courses = [enrolled_courses]
 
