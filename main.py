@@ -17,15 +17,15 @@ app.add_middleware(
 )
 
 # ===== Load Models and Data =====
-courses = pd.read_pickle(r"D:\Jupyter_Notebooks\Graduation-Project\Models\courses_with_vectors.pkl")
+courses = pd.read_pickle("./Models/courses_with_vectors.pkl")
 
-with open(r"D:\Jupyter_Notebooks\Graduation-Project\Models\tfidf_vectorizer.pkl", "rb") as f:
+with open("./Models/tfidf_vectorizer.pkl", "rb") as f:
     vectorizer = pickle.load(f)
 
-with open(r"D:\Jupyter_Notebooks\Graduation-Project\Models\tfidf_matrix.pkl", "rb") as f:
+with open("./Models/tfidf_matrix.pkl", "rb") as f:
     tfidf_matrix = pickle.load(f)
 
-sbert_embeddings = np.load(r"D:\Jupyter_Notebooks\Graduation-Project\Models\sbert_embeddings.npy")
+sbert_embeddings = np.load("./Models/sbert_embeddings.npy")
 
 
 # ===== Search Function =====
