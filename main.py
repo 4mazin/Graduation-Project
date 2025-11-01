@@ -76,21 +76,20 @@ def search_courses_tfidf(query: str, top_n=10, min_sim=0.2):
 # ===== SBERT Recommendation Function =====
 def recommend_by_course(enrolled_courses, top_n=10, min_sim=0.4):
     all_courses = get_all_courses()  # fetch from MongoDB
+    courses_df = pd.DataFrame(all_courses)
 
     if not isinstance(enrolled_courses, list):
         enrolled_courses = [enrolled_courses]
 
     lower_enrolled = [c.lower() for c in enrolled_courses]
 
-    # Convert the MongoDB list to a DataFrame so we can use .str.lower()
-    courses_df = pd.DataFrame(all_courses)
-
     matched = courses_df[courses_df['course_name'].str.lower().isin(lower_enrolled)]
 
     if matched.empty:
         return {"error": "No matching enrolled courses found."}
 
-    indices = matched.index.tolist()
+    # Use course_index from MongoDB
+    indices = matched["course_index"].tolist()
     query_emb = sbert_embeddings[indices].mean(axis=0).reshape(1, -1)
 
     sim_scores = cosine_similarity(query_emb, sbert_embeddings).flatten()
@@ -101,8 +100,13 @@ def recommend_by_course(enrolled_courses, top_n=10, min_sim=0.4):
     recommendations = []
     for idx in top_indices:
         if sim_scores[idx] < min_sim:
-            continue  # skip if similarity is too low
-        course = all_courses[idx]
+            continue
+
+        # Find the course by course_index
+        course = next((c for c in all_courses if c["course_index"] == idx), None)
+        if not course:
+            continue
+
         recommendations.append({
             "course_name": course["course_name"],
             "description": course["description"],
@@ -110,7 +114,6 @@ def recommend_by_course(enrolled_courses, top_n=10, min_sim=0.4):
             "similarity": float(sim_scores[idx])
         })
 
-    # If no valid recommendations above threshold
     if not recommendations:
         return {"message": "Not Found"}
 
