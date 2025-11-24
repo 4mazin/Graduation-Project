@@ -5,7 +5,6 @@ import pickle
 from sklearn.metrics.pairwise import cosine_similarity
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
-import os
 app = FastAPI(title="Course Recommendation API")
 
 #  Add this block here
@@ -18,9 +17,9 @@ app.add_middleware(
 )
 
 # ===== Connecting To Mongo =====
-mongo_uri = os.getenv("MONGO_URI", "mongodb://localhost:27017/Course_Recommendation_System")
+mongo_uri = "mongodb+srv://Amazin_db:%40mazin0N@cluster0.nr8aakt.mongodb.net/Course_Recommendation_System?retryWrites=true&w=majority"
 client = MongoClient(mongo_uri)
-db = client["Course_Recommendation_System"]
+db = client['Courses_Recommendation_System'] 
 collection = db["clean_courses"]
 
 # ===== Load Models and Data =====
@@ -38,7 +37,6 @@ sbert_embeddings = np.load("./Models/sbert_embeddings.npy")
 def get_all_courses():
     return list(collection.find({}, {"_id": 0}))
 
-
 # ===== Search Function =====
 def search_courses_tfidf(query: str, top_n=10, min_sim=0.2):
     if not isinstance(query, str) or not query.strip():
@@ -49,14 +47,15 @@ def search_courses_tfidf(query: str, top_n=10, min_sim=0.2):
     top_indices = sim_scores.argsort()[::-1][:top_n]
 
     all_courses = get_all_courses()
+    courses_df = pd.DataFrame(all_courses)
 
     results = []
     for idx in top_indices:
         if sim_scores[idx] < min_sim:
             continue
-        if idx >= len(all_courses):
+        if idx >= len(courses_df):
             continue
-        course = all_courses[idx]
+        course = courses_df.iloc[idx]
         results.append({
             "course_name": course["course_name"],
             "description": course["description"],
