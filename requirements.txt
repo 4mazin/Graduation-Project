@@ -3,5 +3,5 @@ uvicorn
 pymongo
 pandas
 numpy
-scikit-learn
+scikit-learn==1.4.2
 sentence-transformers
