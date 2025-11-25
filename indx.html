@@ -161,7 +161,7 @@
                 searchResultsContainer.innerHTML = `<div class="flex justify-center items-center h-full"><div class="loader"></div></div>`;
 
                 try {
-                    const response = await fetch('https://graduation-project.onrender.com/search', {
+                    const response = await fetch('http://127.0.0.1:8000/search', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -212,7 +212,7 @@
                 resultsContainer.innerHTML = `<div class="flex justify-center items-center h-full"><div class="loader"></div></div>`;
 
                 try {
-                    const response = await fetch('https://graduation-project.onrender.com/recommend', {
+                    const response = await fetch('http://127.0.0.1:8000/recommend', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ enrolled_courses: [course] })
