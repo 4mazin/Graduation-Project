@@ -1,6 +1,7 @@
 fastapi
 uvicorn
+pymongo
 pandas
 numpy
 scikit-learn
-pymongo
+sentence-transformers
