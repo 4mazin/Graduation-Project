@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 import os
 from sentence_transformers import SentenceTransformer
+import logging
+from pathlib import Path
 app = FastAPI(title="Course Recommendation API")
 
 #  Add this block here
@@ -19,14 +21,28 @@ app.add_middleware(
 )
 
 # ===== Connecting To Mongo =====
-mongo_uri = os.getenv("MONGO_URI")
+MODEL_DIR = os.getenv("MODEL_DIR", "./Models")
+MONGO_URI = os.getenv("MONGO_URI")
 
-if not mongo_uri:
-    raise Exception("MONGO_URI environment variable is missing!")
+if not MONGO_URI:
+    # Fail early with a clear message
+    err = (
+        "MONGO_URI environment variable is not set. "
+        "On Render add an Environment Variable named MONGO_URI containing your Mongo connection string."
+    )
+    logging.error(err)
+    raise RuntimeError(err)
 
-client = MongoClient(mongo_uri)
-db = client['Courses_Recommendation_System']
-collection = db["clean_courses"]
+# ---------- MongoDB connection ----------
+try:
+    client = MongoClient(MONGO_URI)
+    # Use the database name that exists in your cluster
+    db = client['Courses_Recommendation_System']
+    collection = db["clean_courses"]
+    logging.info("Connected to MongoDB")
+except Exception as e:
+    logging.exception("Failed to connect to MongoDB")
+    raise
 
 
 
