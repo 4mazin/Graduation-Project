@@ -1,0 +1,11 @@
+# render.yaml - Blueprint for your FastAPI API
+services:
+  - type: web
+    name: course-recommendation-api
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: MONGO_URI
+        value: "<YOUR_MONGO_URI_HERE>"

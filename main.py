@@ -19,7 +19,7 @@ app.add_middleware(
 )
 
 # ===== Connecting To Mongo =====
-mongo_uri = os.getenv("MONGO_URI")
+mongo_uri = os.getenv("MONGO_URI", "./Models")
 
 if not mongo_uri:
     raise Exception("MONGO_URI environment variable is missing!")
