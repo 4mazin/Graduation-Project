@@ -18,12 +18,12 @@ app.add_middleware(
 )
 
 # ===== Connecting To Mongo =====
-mongo_uri = os.getenv("MONGO_URI", "mongodb+srv://Amazin_db:%40mazin0N@cluster0.nr8aakt.mongodb.net/Course_Recommendation_System?retryWrites=true&w=majority")
+mongo_uri = os.environ.get("MONGO_URI")
 
 if not mongo_uri:
     raise Exception("MONGO_URI environment variable is missing!")
 
-client = MongoClient(mongo_uri)
+client = MongoClient(mongo_uri, tls = True)
 db = client['Courses_Recommendation_System']
 collection = db["clean_courses"]
 
