@@ -5,6 +5,8 @@ import pickle
 from sklearn.metrics.pairwise import cosine_similarity
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
+import os
+from sentence_transformers import SentenceTransformer
 app = FastAPI(title="Course Recommendation API")
 
 #  Add this block here
@@ -17,10 +19,17 @@ app.add_middleware(
 )
 
 # ===== Connecting To Mongo =====
-mongo_uri = "mongodb+srv://Amazin_db:%40mazin0N@cluster0.nr8aakt.mongodb.net/Course_Recommendation_System?retryWrites=true&w=majority"
+mongo_uri = os.getenv("MONGO_URI")
+
+if not mongo_uri:
+    raise Exception("MONGO_URI environment variable is missing!")
+
 client = MongoClient(mongo_uri)
-db = client['Courses_Recommendation_System'] 
+db = client['Courses_Recommendation_System']
 collection = db["clean_courses"]
+
+
+
 
 # ===== Load Models and Data =====
 # courses = pd.read_pickle("./Models/courses_with_vectors.pkl")
@@ -30,6 +39,8 @@ with open("./Models/tfidf_vectorizer.pkl", "rb") as f:
 
 with open("./Models/tfidf_matrix.pkl", "rb") as f:
     tfidf_matrix = pickle.load(f)
+
+sbert_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 sbert_embeddings = np.load("./Models/sbert_embeddings.npy")
 
@@ -82,12 +93,29 @@ def recommend_by_course(enrolled_courses, top_n=10, min_sim=0.4):
 
     lower_enrolled = [c.lower() for c in enrolled_courses]
 
+    # ===== 1. Try exact match first =====
     matched = courses_df[courses_df['course_name'].str.lower().isin(lower_enrolled)]
 
+    # ===== 2. If no exact match → find closest by cosine similarity =====
     if matched.empty:
-        return {"error": "No matching enrolled courses found."}
+        # Encode input courses
+        query_embs = sbert_model.encode(enrolled_courses)
+        query_emb = np.mean(query_embs, axis=0).reshape(1, -1)
 
-    # Use course_index from MongoDB
+        # Compare with every course embedding
+        sims = cosine_similarity(query_emb, sbert_embeddings).flatten()
+
+        # Best matching course index
+        best_idx = sims.argmax()
+        best_sim = sims[best_idx]
+
+        # Build a one-row DataFrame for that closest course
+        matched = courses_df[courses_df["course_index"] == best_idx]
+
+        print(f"No exact match found. Closest match: "
+            f"{matched.iloc[0]['course_name']} (sim={best_sim:.3f})")
+
+    # ===== Continue with your logic =====
     indices = matched["course_index"].tolist()
     query_emb = sbert_embeddings[indices].mean(axis=0).reshape(1, -1)
 
@@ -101,7 +129,7 @@ def recommend_by_course(enrolled_courses, top_n=10, min_sim=0.4):
         if sim_scores[idx] < min_sim:
             continue
 
-        # Find the course by course_index
+        # Find course by course_index
         course = next((c for c in all_courses if c["course_index"] == idx), None)
         if not course:
             continue
@@ -117,6 +145,7 @@ def recommend_by_course(enrolled_courses, top_n=10, min_sim=0.4):
         return {"message": "Not Found"}
 
     return recommendations
+
 
 
 # ===== API Endpoints =====
