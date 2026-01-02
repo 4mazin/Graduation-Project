@@ -83,7 +83,7 @@ pip install -r requirements.txt
 3️⃣ Start the API
 uvicorn api.main:app --reload
 
-4️⃣ Test the endpoints
+4️⃣ Open index.html and go live then test the end points
 
 Open in browser:
 
